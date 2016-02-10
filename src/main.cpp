@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
 
 	// Initialize wiringPi -- using Broadcom pin numbers
 	// this call automatically terminates program with an error msg if the setup cannot be completed
-	// wiringPiSetupGpio();
+	wiringPiSetupGpio();
 
 	// setup inputs and outputs
 	for(auto pin : config.inputs) {
