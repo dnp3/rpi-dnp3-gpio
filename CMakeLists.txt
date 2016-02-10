@@ -11,6 +11,6 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g")
   
 # ---- executable ----
-add_executable(rpi-dnp3-gpio src/main.cpp)
-target_link_libraries (rpi-dnp3-gpio inih)
+add_executable(rpi-dnp3-gpio src/main.cpp deps/inih/ini.c deps/inih/ini.h)
+target_link_libraries (rpi-dnp3-gpio)
 
