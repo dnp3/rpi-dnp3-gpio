@@ -46,10 +46,12 @@ int main(int argc, char *argv[])
 	// setup inputs and outputs
 	for(auto pin : config.inputs) {
 		pinMode(pin, INPUT);
+		std::cout << "pin " << pin << " set as INPUT" << std::endl;
 	}
 
 	for(auto pin : config.outputs) {
 		pinMode(pin, OUTPUT);
+		std::cout << "pin " << pin << " set as OUTPUT" << std::endl;
 	}
 
 	GPIOCommandHandler commandHandler(config.outputs);
