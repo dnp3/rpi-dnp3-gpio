@@ -7,6 +7,7 @@
 #include <asiodnp3/DNP3Manager.h>
 #include <asiodnp3/MeasUpdate.h>
 #include <asiopal/UTCTimeSource.h>
+#include <asiodnp3/ConsoleLogger.h>
 #include <opendnp3/LogLevels.h>
 
 #include <thread>
@@ -57,12 +58,20 @@ int main(int argc, char *argv[])
 
 	DNP3Manager manager(1);
 
+	manager.AddLogSubscriber(ConsoleLogger::Instance());
+
 	auto channel = manager.AddTCPServer("server", LOG_LEVELS, ChannelRetry::Default(), "0.0.0.0", 20000);
 
 	OutstationStackConfig oconfig;
 	oconfig.dbTemplate = DatabaseTemplate::BinaryOnly(config.inputs.size());
 
+	//configure addressing
+	oconfig.link.RemoteAddr = 1;
+	oconfig.link.LocalAddr = 10;
+
 	auto outstation = channel->AddOutstation("outstation", commandHandler, DefaultOutstationApplication::Instance(), oconfig);
+
+	outstation->Enable();
 
 	while(true) {
 
