@@ -5,15 +5,20 @@
 #include <wiringPi.h>
 
 #include <asiodnp3/DNP3Manager.h>
+#include <asiodnp3/MeasUpdate.h>
+#include <asiopal/UTCTimeSource.h>
+#include <opendnp3/LogLevels.h>
 
 #include <thread>
 
 #include "Config.h"
+#include "GPIOCommandHandler.h"
 
 // prototypes for handling ini file reading
 int cfg_handler(void* user, const char* section, const char* name, const char* value);
 bool safe_handler(Config& config, const std::string& section, const std::string& name, const std::string& value);
 
+using namespace opendnp3;
 using namespace asiodnp3;
 
 int main(int argc, char *argv[])
@@ -46,23 +51,35 @@ int main(int argc, char *argv[])
 		pinMode(pin, OUTPUT);
 	}
 
+	GPIOCommandHandler commandHandler(config.outputs);
+
+	const auto LOG_LEVELS = levels::NORMAL | levels::ALL_APP_COMMS;
 
 	DNP3Manager manager(1);
 
+	auto channel = manager.AddTCPServer("server", LOG_LEVELS, ChannelRetry::Default(), "0.0.0.0", 20000);
+
+	OutstationStackConfig oconfig;
+	oconfig.dbTemplate = DatabaseTemplate::BinaryOnly(config.inputs.size());
+
+	auto outstation = channel->AddOutstation("outstation", commandHandler, DefaultOutstationApplication::Instance(), oconfig);
 
 	while(true) {
-		std::cout << "enter x to exit" << std::endl;
-		char input;
-		std::cin >> input;
-		switch(input) {
-			case('x'):
-				return 0;
-			default:
-				continue;
-		}
-	}
 
-	return 0;
+		uint16_t index = 0;
+		DNPTime time(asiopal::UTCTimeSource::Instance().Now().msSinceEpoch);
+
+		MeasUpdate update(outstation);
+
+		for(auto pin : config.inputs) {
+			bool value = digitalRead(pin);
+			update.Update(Binary(value, 0x01, time), index);
+			++index;
+		}
+
+		// determines the sampling rate
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	}
 }
 
 bool safe_handler(Config& config, const std::string& section, const std::string& name, const std::string& value)
