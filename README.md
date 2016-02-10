@@ -2,11 +2,26 @@
 
 DNP3 outstation implementation mapped to Raspberry PI's GPIO pins
 
+# prerequisites
+
+This project and opendnp3 require cmake and GCC 4.8:
+
+```
+> sudo apt-get install g++-4.8 cmake
+```
+
 # dependencies
 
 Build and install the [WiringPi](https://projects.drogon.net/raspberry-pi/wiringpi/download-and-install/) library.
 
 Build and install [opendnp3](https://github.com/jadamcrain/dnp3). Build instructions are [here](https://automatak.com/opendnp3/docs/guide/current/build/cmake/).
+
+After setting up ASIO_HOME, your cmake invocation will look like:
+```
+> CXX=g++-4.8 cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
+> make
+> sudo make install
+```
 
 The library also uses the [inih](https://github.com/benhoyt/inih) library for reading configuration files. This is specified as a git submodule, so be sure to clone this repository recursively:
 
