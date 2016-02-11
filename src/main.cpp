@@ -64,18 +64,18 @@ int main(int argc, char *argv[])
 
 	auto channel = manager.AddTCPServer("server", LOG_LEVELS, ChannelRetry::Default(), "0.0.0.0", 20000);
 
-	OutstationStackConfig oconfig;
-	oconfig.dbTemplate = DatabaseTemplate::BinaryOnly(config.inputs.size());
-	oconfig.outstation.eventBufferConfig = EventBufferConfig(50);
-	oconfig.outstation.params.allowUnsolicited = true;
+	config.stack.dbTemplate = DatabaseTemplate::BinaryOnly(config.inputs.size());
+	config.stack.outstation.eventBufferConfig = EventBufferConfig(50);
+	config.stack.outstation.params.allowUnsolicited = true;
 
-	//configure addressing
-	oconfig.link.RemoteAddr = 1;
-	oconfig.link.LocalAddr = 10;
-
-	auto outstation = channel->AddOutstation("outstation", commandHandler, DefaultOutstationApplication::Instance(), oconfig);
+	auto outstation = channel->AddOutstation("outstation", commandHandler, DefaultOutstationApplication::Instance(), config.stack);
 
 	outstation->Enable();
+
+	std::cout << "Sample period is: " << config.sample_period_ms << std::endl;
+        const auto SAMPLE_PERIOD = std::chrono::milliseconds(config.sample_period_ms);
+
+
 
 	while(true) {
 
@@ -91,31 +91,50 @@ int main(int argc, char *argv[])
 		}
 
 		// determines the sampling rate
-		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		std::this_thread::sleep_for(SAMPLE_PERIOD);
 	}
 }
 
 bool safe_handler(Config& config, const std::string& section, const std::string& name, const std::string& value)
 {
 	try
-	{
-		auto gpiopin = std::stoi(name);
-
+	{		
 		if(section == "input")
 		{
-			return config.AddInput(gpiopin);
+			return config.AddInput(std::stoi(name));
 		}
 		else if(section == "output")
 		{
-			return config.AddOutput(gpiopin);
+			return config.AddOutput(std::stoi(name));
+		}
+		else if(section == "program")
+		{
+			if(name == "sample-period-ms")
+			{
+				config.sample_period_ms = std::stoi(value);
+				return true;
+			}
+		}
+		else if(section == "link")
+		{
+			if(name == "remote-addr")
+			{
+				config.stack.link.RemoteAddr = std::stoi(value);
+				return true;
+			}
+			else if(name == "local-addr")
+			{
+				config.stack.link.LocalAddr = std::stoi(value);
+				return true;
+			}
 		}
 
-		std::cerr << "Unknown section name: " << name << std::endl;
+		std::cerr << "Unknown parameter, section: " << section << " name: " << name << " value: " << value << std::endl;
 		return false;
 	}
 	catch(std::invalid_argument)
 	{
-		std::cerr << "Bad integer conversion on: " << name << std::endl;
+		std::cerr << "Bad integer conversion, section: " << section << " name: " << name << " value: " << value << std::endl;
 		return false;
 	}
 }
