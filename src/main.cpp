@@ -66,6 +66,8 @@ int main(int argc, char *argv[])
 
 	OutstationStackConfig oconfig;
 	oconfig.dbTemplate = DatabaseTemplate::BinaryOnly(config.inputs.size());
+	oconfig.outstation.eventBufferConfig = EventBufferConfig(50);
+	oconfig.outstation.params.allowUnsolicited = true;
 
 	//configure addressing
 	oconfig.link.RemoteAddr = 1;
