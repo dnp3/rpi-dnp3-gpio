@@ -58,9 +58,7 @@ int main(int argc, char *argv[])
 
 	const auto LOG_LEVELS = levels::NORMAL | levels::ALL_APP_COMMS;
 
-	DNP3Manager manager(1);
-
-	manager.AddLogSubscriber(ConsoleLogger::Instance());
+	DNP3Manager manager(1, ConsoleLogger::Create());
 
 	auto channel = manager.AddTCPServer("server", LOG_LEVELS, ChannelRetry::Default(), "0.0.0.0", 20000);
 
