@@ -24,6 +24,7 @@ public:
 
     opendnp3::OutstationStackConfig stack;
     int sample_period_ms;
+	int port;
 
 private:
 

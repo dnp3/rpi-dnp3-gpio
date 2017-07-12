@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
 
 	DNP3Manager manager(1, ConsoleLogger::Create());
 
-	auto channel = manager.AddTCPServer("server", LOG_LEVELS, ChannelRetry::Default(), "0.0.0.0", 20000);
+	auto channel = manager.AddTCPServer("server", LOG_LEVELS, ChannelRetry::Default(), "0.0.0.0", config.port);
 
 	config.stack.dbTemplate = DatabaseTemplate::BinaryOnly(config.inputs.size());
 	config.stack.outstation.eventBufferConfig = EventBufferConfig(50);
@@ -123,6 +123,11 @@ bool safe_handler(Config& config, const std::string& section, const std::string&
 			else if(name == "local-addr")
 			{
 				config.stack.link.LocalAddr = std::stoi(value);
+				return true;
+			}
+			else if (name == "port")
+			{
+				config.port = std::stoi(value);
 				return true;
 			}
 		}
