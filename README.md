@@ -20,7 +20,7 @@ git clone --recursive https://github.com/automatak/rpi-dnp3-gpio.git
 
 Build and install the [WiringPi](https://projects.drogon.net/raspberry-pi/wiringpi/download-and-install/) library.
 
-Build and install the 2.1.0 release of [opendnp3](https://github.com/jadamcrain/dnp3). Build instructions are [here](https://automatak.com/opendnp3/docs/guide/current/build/cmake/).
+Build and install the 2.1.0 release of [opendnp3](https://github.com/automatak/dnp3). Build instructions are [here](https://automatak.com/opendnp3/docs/guide/current/build/cmake/).
 
 After setting up ASIO_HOME, your cmake invocation will look like:
 ```
