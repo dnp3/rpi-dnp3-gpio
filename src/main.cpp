@@ -5,7 +5,8 @@
 #include <wiringPi.h>
 
 #include <asiodnp3/DNP3Manager.h>
-#include <asiodnp3/MeasUpdate.h>
+#include <asiodnp3/UpdateBuilder.h>
+#include <asiodnp3/PrintingChannelListener.h>
 #include <asiopal/UTCTimeSource.h>
 #include <asiodnp3/ConsoleLogger.h>
 #include <opendnp3/LogLevels.h>
@@ -20,6 +21,7 @@ int cfg_handler(void* user, const char* section, const char* name, const char* v
 bool safe_handler(Config& config, const std::string& section, const std::string& name, const std::string& value);
 
 using namespace opendnp3;
+using namespace asiopal;
 using namespace asiodnp3;
 
 int main(int argc, char *argv[])
@@ -54,19 +56,21 @@ int main(int argc, char *argv[])
 		std::cout << "pin " << static_cast<int>(pin) << " set as OUTPUT" << std::endl;
 	}
 
-	GPIOCommandHandler commandHandler(config.outputs);
+	const auto commandHandler = std::make_shared<GPIOCommandHandler>(config.outputs);
 
 	const auto LOG_LEVELS = levels::NORMAL | levels::ALL_APP_COMMS;
 
 	DNP3Manager manager(1, ConsoleLogger::Create());
 
-	auto channel = manager.AddTCPServer("server", LOG_LEVELS, ChannelRetry::Default(), "0.0.0.0", config.port);
+	auto channel = manager.AddTCPServer("server", LOG_LEVELS, ChannelRetry::Default(), "0.0.0.0", config.port, PrintingChannelListener::Create());
 
-	config.stack.dbTemplate = DatabaseTemplate::BinaryOnly(config.inputs.size());
-	config.stack.outstation.eventBufferConfig = EventBufferConfig(50);
-	config.stack.outstation.params.allowUnsolicited = true;
+	OutstationStackConfig stack(DatabaseSizes::BinaryOnly(config.inputs.size()));
+	stack.link = config.link;
 
-	auto outstation = channel->AddOutstation("outstation", commandHandler, DefaultOutstationApplication::Instance(), config.stack);
+	stack.outstation.eventBufferConfig = EventBufferConfig(50);
+	stack.outstation.params.allowUnsolicited = true;
+
+	auto outstation = channel->AddOutstation("outstation", commandHandler, DefaultOutstationApplication::Create(), stack);
 
 	outstation->Enable();
 
@@ -80,13 +84,15 @@ int main(int argc, char *argv[])
 		uint16_t index = 0;
 		DNPTime time(asiopal::UTCTimeSource::Instance().Now().msSinceEpoch);
 
-		MeasUpdate update(outstation);
-
+		UpdateBuilder builder;
 		for(auto pin : config.inputs) {
 			bool value = digitalRead(pin);
-			update.Update(Binary(value, 0x01, time), index);
+			builder.Update(Binary(value, 0x01, time), index);
 			++index;
 		}
+		outstation->Apply(builder.Build());
+
+		
 
 		// determines the sampling rate
 		std::this_thread::sleep_for(SAMPLE_PERIOD);
@@ -117,12 +123,12 @@ bool safe_handler(Config& config, const std::string& section, const std::string&
 		{
 			if(name == "remote-addr")
 			{
-				config.stack.link.RemoteAddr = std::stoi(value);
+				config.link.RemoteAddr = std::stoi(value);
 				return true;
 			}
 			else if(name == "local-addr")
 			{
-				config.stack.link.LocalAddr = std::stoi(value);
+				config.link.LocalAddr = std::stoi(value);
 				return true;
 			}
 			else if (name == "port")

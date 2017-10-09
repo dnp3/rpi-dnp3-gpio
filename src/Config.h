@@ -5,7 +5,7 @@
 #include <vector>
 #include <set>
 
-#include <opendnp3/outstation/OutstationStackConfig.h>
+#include <opendnp3/link/LinkConfig.h>
 
 class Config
 {
@@ -13,7 +13,7 @@ class Config
    
 public:
 
-    Config() : sample_period_ms(100)
+    Config() : link(false, false), sample_period_ms(100)
     {}
 
     bool AddInput(uint8_t gpiopin);
@@ -22,9 +22,9 @@ public:
     std::vector<uint8_t> inputs;
     std::vector<uint8_t> outputs;
 
-    opendnp3::OutstationStackConfig stack;
+    opendnp3::LinkConfig link;
     int sample_period_ms;
-	int port;
+    int port;
 
 private:
 
