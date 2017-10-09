@@ -17,14 +17,16 @@ The library also uses the [inih](https://github.com/benhoyt/inih) library for re
 ```
 git clone --recursive https://github.com/automatak/rpi-dnp3-gpio.git
 ```
+## wiringPI
 
 Build and install the [WiringPi](https://projects.drogon.net/raspberry-pi/wiringpi/download-and-install/) library.
 
+## opendnp3
+
 Build and install the 2.2.0 release of [opendnp3](https://github.com/automatak/dnp3). Build instructions are [here](https://automatak.com/opendnp3/docs/guide/current/build/cmake/).
 
-After setting up ASIO_HOME, your cmake invocation will look like:
 ```
-> CXX=g++-4.8 cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
+> CXX=g++-4.9 cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
 > make
 > sudo make install
 ```
