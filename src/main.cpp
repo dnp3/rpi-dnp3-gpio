@@ -64,7 +64,14 @@ int main(int argc, char *argv[])
 
 	auto channel = manager.AddTCPServer("server", LOG_LEVELS, ChannelRetry::Default(), "0.0.0.0", config.port, PrintingChannelListener::Create());
 
-	OutstationStackConfig stack(DatabaseSizes::BinaryOnly(config.inputs.size()));
+	OutstationStackConfig stack(
+		DatabaseSizes(
+			config.inputs.size(), // binary
+			0, 0, 0, 0,
+			config.inputs.size(), // binary output status
+			0, 0
+		)
+	);
 	stack.link = config.link;
 
 	stack.outstation.eventBufferConfig = EventBufferConfig(50);
@@ -81,19 +88,27 @@ int main(int argc, char *argv[])
 
 	while(true) {
 
-		uint16_t index = 0;
 		DNPTime time(asiopal::UTCTimeSource::Instance().Now().msSinceEpoch);
 
 		UpdateBuilder builder;
+
+		uint16_t index = 0;
 		for(auto pin : config.inputs) {
 			bool value = digitalRead(pin);
 			builder.Update(Binary(value, 0x01, time), index);
 			++index;
 		}
+
+		index = 0;
+		for(auto pin : config.outputs) {
+			bool value = digitalRead(pin);
+			builder.Update(BinaryOutputStatus(value, 0x01, time), index);
+			++index;
+		}
+
 		outstation->Apply(builder.Build());
 
 		
-
 		// determines the sampling rate
 		std::this_thread::sleep_for(SAMPLE_PERIOD);
 	}
