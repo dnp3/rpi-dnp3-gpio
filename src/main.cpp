@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
 		DatabaseSizes(
 			config.inputs.size(), // binary
 			0, 0, 0, 0,
-			config.inputs.size(), // binary output status
+			config.outputs.size(), // binary output status
 			0, 0
 		)
 	);
